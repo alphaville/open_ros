@@ -43,6 +43,10 @@ int main(int argc, char **argv)
   while (ros::ok())
   {
 
+    if (params.parameter.size() > 0) {
+	for (int i=0; i<ROSENBROCK_NUM_PARAMETERS; ++i) p[i] = params.parameter[i];
+    }
+
     rosenbrockSolverStatus status = rosenbrock_solve(cache, u, p, 0, &init_penalty);  // solve!
 
     /* pack results into `results` */
