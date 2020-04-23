@@ -12,9 +12,6 @@
 #define MPC_DUMMY_PARAMS_TOPIC "open_parameters"
 #define MPC_DUMMY_RATE 10
 
-/**
- * Parameters received on topic /mpc/mpc_parameters
- */
 static mpc_dummy::OptimisationParameters params;
 static mpc_dummy::OptimisationResult results;
 
