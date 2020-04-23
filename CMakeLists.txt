@@ -27,8 +27,8 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/include
 )
 
-set(NODE_NAME ${PROJECT_NAME}_talker)
-add_executable(${NODE_NAME} src/talker.cpp)
+set(NODE_NAME ${PROJECT_NAME}_optimizer)
+add_executable(${NODE_NAME} src/open_optimizer.cpp)
 target_link_libraries(
     ${NODE_NAME}
     ${PROJECT_SOURCE_DIR}/extern_lib/librosenbrock.a)
