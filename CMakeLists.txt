@@ -10,8 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_message_files(
   FILES
-  OptimisationResult.msg
-  OptimisationParameters.msg
+  OptimizationResult.msg
+  OptimizationParameters.msg
 )
 
 generate_messages(
@@ -24,10 +24,20 @@ catkin_package(
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/include
 )
 
-add_executable(${PROJECT_NAME}_talker src/talker.cpp)
-target_link_libraries(${PROJECT_NAME}_talker ${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/extern_lib/librosenbrock.a)
-target_link_libraries(${PROJECT_NAME}_talker m dl)
-target_link_libraries(${PROJECT_NAME}_talker ${catkin_LIBRARIES})
-add_dependencies(${PROJECT_NAME}_talker mpc_dummy_generate_messages_cpp)  ##XXX: Is this necessary?
+set(NODE_NAME ${PROJECT_NAME}_talker)
+add_executable(${NODE_NAME} src/talker.cpp)
+target_link_libraries(
+    ${NODE_NAME}
+    ${PROJECT_SOURCE_DIR}/extern_lib/librosenbrock.a)
+target_link_libraries(
+    ${NODE_NAME}
+    m dl
+    ${catkin_LIBRARIES})
+add_dependencies(
+    ${NODE_NAME}
+    ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+    ${catkin_EXPORTED_TARGETS})
+
