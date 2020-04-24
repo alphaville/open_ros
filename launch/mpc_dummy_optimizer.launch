@@ -1,0 +1,3 @@
+<launch>
+  <node name="open_optimizer" pkg="mpc_dummy" type="mpc_dummy_optimizer" respawn="true" clear_params="true" output="screen" />
+</launch>
