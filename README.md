@@ -11,7 +11,7 @@ Compile with `catkin_make`.
 Run with:
 
 ```
-rosrun mpc_dummy mpc_dummy_optimizer
+roslaunch mpc_dummy mpc_dummy_optimizer.launch
 ```
 
 Once you run the node, you can post your request to `mpc_dummy/open_parameters` as follows:
@@ -27,7 +27,7 @@ rostopic pub /mpc_dummy/open_parameters        \
 The result will be announced on `/mpc_dummy/open_solution`:
 
 ```
-rostopic echo /mpc/open_solution
+rostopic echo /mpc_dummy/open_solution
 ```
 
 [1]: https://alphaville.github.io/optimization-engine

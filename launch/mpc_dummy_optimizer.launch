@@ -1,0 +1,5 @@
+<launch>
+  <node name="open_optimizer" pkg="mpc_dummy" type="mpc_dummy_optimizer" respawn="true" clear_params="true" output="screen">
+    <rosparam file="$(find mpc_dummy)/config/mpc_dummy_params.yaml" />
+  </node>
+</launch>

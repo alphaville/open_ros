@@ -135,21 +135,28 @@ public:
  */
 int main(int argc, char** argv)
 {
+    std::string solution_topic, params_topic;
+    double rate;
+
     mpc_dummy::OptimizationEngineManager mng;
     ros::init(argc, argv, MPC_DUMMY_NODE_NAME);
-    ros::NodeHandle n(MPC_DUMMY_BASE_TOPIC);
+    ros::NodeHandle n(MPC_DUMMY_BASE_TOPIC), private_nh_("~");
+
+    private_nh_.param("solution_topic", solution_topic, std::string(MPC_DUMMY_SOLUTION_TOPIC));
+    private_nh_.param("params_topic", params_topic, std::string(MPC_DUMMY_PARAMS_TOPIC));
+    private_nh_.param("rate", rate, double(MPC_DUMMY_RATE));
 
     ros::Publisher mpc_pub
         = n.advertise<mpc_dummy::OptimizationResult>(
-            MPC_DUMMY_SOLUTION_TOPIC,
+            solution_topic,
             MPC_DUMMY_SOLUTION_TOPIC_QUEUE_SIZE);
     ros::Subscriber sub
         = n.subscribe(
-            MPC_DUMMY_PARAMS_TOPIC,
+            params_topic,
             MPC_DUMMY_PARAMS_TOPIC_QUEUE_SIZE,
             &mpc_dummy::OptimizationEngineManager::mpcReceiveRequestCallback,
             &mng);
-    ros::Rate loop_rate(MPC_DUMMY_RATE);
+    ros::Rate loop_rate(rate);
 
     while (ros::ok()) {
         mng.solveAndPublish(mpc_pub);
