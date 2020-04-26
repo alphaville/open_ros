@@ -1,0 +1,10 @@
+<launch>
+  <node name="parametric_optimizer"
+        pkg="parametric_optimizer"
+        type="open_node"
+        respawn="true"
+        clear_params="true"
+        output="screen">
+    <rosparam file="$(find parametric_optimizer)/config/open_params.yaml" />
+  </node>
+</launch>

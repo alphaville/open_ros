@@ -1,27 +1,26 @@
 #include "ros/ros.h"
-#include "mpc_dummy/OptimizationResult.h"
-#include "mpc_dummy/OptimizationParameters.h"
+#include "parametric_optimizer/OptimizationResult.h"
+#include "parametric_optimizer/OptimizationParameters.h"
 #include "rosenbrock_bindings.hpp"
 #include "open_optimizer.hpp"
 
-namespace mpc_dummy {
+namespace parametric_optimizer {
 /**
- * Class mpc_dummy::OptimizationEngineManager manages the
+ * Class parametric_optimizer::OptimizationEngineManager manages the
  * exchange of data between the input and output topics
  * of this node
  */
 class OptimizationEngineManager {
 
 private:
-    mpc_dummy::OptimizationParameters params;
-    mpc_dummy::OptimizationResult results;
+    parametric_optimizer::OptimizationParameters params;
+    parametric_optimizer::OptimizationResult results;
     double p[ROSENBROCK_NUM_PARAMETERS] = { 0 };
     double u[ROSENBROCK_NUM_DECISION_VARIABLES] = { 0 };
-#if ROSENBROCK_N1 > 0
-		double y[ROSENBROCK_N1] = { 0 };
-#endif
+		double *y = NULL;
+
     rosenbrockCache* cache;
-    double init_penalty = MPC_DUMMY_DEFAULT_INITIAL_PENALTY;
+    double init_penalty = ROS_NODE_ROSENBROCK_DEFAULT_INITIAL_PENALTY;
 
     /**
      * Publish obtained results to output topic
@@ -41,7 +40,7 @@ private:
     {
         init_penalty = (params.initial_penalty > 1.0)
             ? params.initial_penalty
-            : MPC_DUMMY_DEFAULT_INITIAL_PENALTY;
+            : ROS_NODE_ROSENBROCK_DEFAULT_INITIAL_PENALTY;
 
         if (params.parameter.size() > 0) {
             for (size_t i = 0; i < ROSENBROCK_NUM_PARAMETERS; ++i)
@@ -53,47 +52,44 @@ private:
                 u[i] = params.initial_guess[i];
         }
 
-#if ROSENBROCK_N1 > 0
-				if (params.initial_y.size() == ROSENBROCK_N1) {
+		if (params.initial_y.size() == ROSENBROCK_N1) {
             for (size_t i = 0; i < ROSENBROCK_N1; ++i)
                 y[i] = params.initial_y[i];
-				}
-#endif
+		}
 
     }
 
     /**
      * Call OpEn to solve the problem
-	   */
+     */
     rosenbrockSolverStatus solve()
     {
-#if ROSENBROCK_N1 > 0
-            return rosenbrock_solve(cache, u, p, y, &init_penalty);
-#else
-            return rosenbrock_solve(cache, u, p, 0, &init_penalty);
-#endif
+        return rosenbrock_solve(cache, u, p, y, &init_penalty);
     }
+
 
 public:
     /**
-	   * Constructor of OptimizationEngineManager
-	   */
+     * Constructor of OptimizationEngineManager
+     */
     OptimizationEngineManager()
     {
+			  y = new double[ROSENBROCK_N1];
         cache = rosenbrock_new();
     }
 
     /**
-	   * Destructor of OptimizationEngineManager
-	   */
+     * Destructor of OptimizationEngineManager
+     */
     ~OptimizationEngineManager()
     {
+			  if (y!=NULL) delete[] y;
         rosenbrock_free(cache);
     }
 
     /**
-	   * Copies results from `status` to the local field `results`
-	   */
+     * Copies results from `status` to the local field `results`
+     */
     void updateResults(rosenbrockSolverStatus& status)
     {
         std::vector<double> sol(u, u + ROSENBROCK_NUM_DECISION_VARIABLES);
@@ -111,10 +107,10 @@ public:
     }
 
     /**
-		 * Callback that obtains data from topic `/mpc_dummy/open_params`
-		 */
+     * Callback that obtains data from topic `/parametric_optimizer/open_params`
+     */
     void mpcReceiveRequestCallback(
-        const mpc_dummy::OptimizationParameters::ConstPtr& msg)
+        const parametric_optimizer::OptimizationParameters::ConstPtr& msg)
     {
         params = *msg;
     }
@@ -128,39 +124,46 @@ public:
     }
 }; /* end of class OptimizationEngineManager */
 
-} /* end of namespace mpc_dummy */
+} /* end of namespace parametric_optimizer */
 
 /**
  * Main method
+ *
+ * This advertises a new (private) topic to which the optimizer
+ * announces its solution and solution status and details. The
+ * publisher topic is 'parametric_optimizer/result'.
+ *
+ * It obtains inputs from 'parametric_optimizer/parameters'.
+ *
  */
 int main(int argc, char** argv)
 {
-    std::string solution_topic, params_topic;
-    double rate;
 
-    mpc_dummy::OptimizationEngineManager mng;
-    ros::init(argc, argv, MPC_DUMMY_NODE_NAME);
-    ros::NodeHandle n(MPC_DUMMY_BASE_TOPIC), private_nh_("~");
+    std::string solution_topic, params_topic;  /* parameter and solution topics */
+    double rate; /* rate of node (specified by parameter) */
 
-    private_nh_.param("solution_topic", solution_topic, std::string(MPC_DUMMY_SOLUTION_TOPIC));
-    private_nh_.param("params_topic", params_topic, std::string(MPC_DUMMY_PARAMS_TOPIC));
-    private_nh_.param("rate", rate, double(MPC_DUMMY_RATE));
+    parametric_optimizer::OptimizationEngineManager mng;
+    ros::init(argc, argv, ROS_NODE_ROSENBROCK_NODE_NAME);
+    ros::NodeHandle private_nh("~");
+
+    private_nh.param("solution_topic", solution_topic, std::string("result"));
+    private_nh.param("params_topic", params_topic, std::string(ROS_NODE_ROSENBROCK_PARAMS_TOPIC));
+    private_nh.param("rate", rate, double(ROS_NODE_ROSENBROCK_RATE));
 
     ros::Publisher mpc_pub
-        = n.advertise<mpc_dummy::OptimizationResult>(
-            solution_topic,
-            MPC_DUMMY_SOLUTION_TOPIC_QUEUE_SIZE);
+        = private_nh.advertise<parametric_optimizer::OptimizationResult>(
+            ROS_NODE_ROSENBROCK_SOLUTION_TOPIC,
+            ROS_NODE_ROSENBROCK_SOLUTION_TOPIC_QUEUE_SIZE);
     ros::Subscriber sub
-        = n.subscribe(
-            params_topic,
-            MPC_DUMMY_PARAMS_TOPIC_QUEUE_SIZE,
-            &mpc_dummy::OptimizationEngineManager::mpcReceiveRequestCallback,
+        = private_nh.subscribe(
+            ROS_NODE_ROSENBROCK_PARAMS_TOPIC,
+            ROS_NODE_ROSENBROCK_PARAMS_TOPIC_QUEUE_SIZE,
+            &parametric_optimizer::OptimizationEngineManager::mpcReceiveRequestCallback,
             &mng);
-    ros::Rate loop_rate(rate);
+    ros::Rate loop_rate(ROS_NODE_ROSENBROCK_RATE);
 
     while (ros::ok()) {
         mng.solveAndPublish(mpc_pub);
-
         ros::spinOnce();
         loop_rate.sleep();
     }

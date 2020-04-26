@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>mpc_dummy</name>
-  <version>0.0.0</version>
-  <description>MPC package</description>
-  <maintainer email="p.sopasakis@gmail.com">chung</maintainer>
-  <license>MIT</license>
+  <name>parametric_optimizer</name>
+  <version>0.1.1</version>
+  <description>cool ROS node</description>
+  <maintainer email="maintainer-email@todo.todo">chung</maintainer>
+  <license>LGPLv3</license>
   <buildtool_depend>catkin</buildtool_depend>
 
   <!-- Messages -->

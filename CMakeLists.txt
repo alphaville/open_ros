@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 add_compile_options(-std=c++11)
-project(mpc_dummy)
+project(parametric_optimizer)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -27,7 +27,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/include
 )
 
-set(NODE_NAME ${PROJECT_NAME}_optimizer)
+set(NODE_NAME open_node)
 add_executable(${NODE_NAME} src/open_optimizer.cpp)
 target_link_libraries(
     ${NODE_NAME}
@@ -38,6 +38,5 @@ target_link_libraries(
     ${catkin_LIBRARIES})
 add_dependencies(
     ${NODE_NAME}
-    ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+    ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS})
-
