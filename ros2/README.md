@@ -1,5 +1,36 @@
 # ROS2 Package: parametric_optimizer_ros2
 
+## Generation
+
+This is an auto-generated ROS2 package, created using the following Python code
+using [OpEn](https://alphaville.github.io/optimization-engine/docs/python-ros2)
+
+```python
+import opengen as og
+import casadi.casadi as cs
+
+u = cs.SX.sym("u", 5)
+p = cs.SX.sym("p", 2)
+phi = og.functions.rosenbrock(u, p)
+
+problem = og.builder.Problem(u, p, phi) \
+    .with_constraints(og.constraints.Ball2(None, 1.5))
+
+meta = og.config.OptimizerMeta() \
+    .with_optimizer_name("rosenbrock_ros2")
+
+ros2_config = og.config.RosConfiguration() \
+    .with_package_name("parametric_optimizer_ros2") \
+    .with_node_name("open_node_ros2") \
+    .with_rate(10)
+
+build_config = og.config.BuildConfiguration() \
+    .with_build_directory("my_optimizers") \
+    .with_ros2(ros2_config)
+
+builder = og.builder.OpEnOptimizerBuilder(problem, meta, build_config)
+builder.build()
+```
 
 ## Installation and Setup
 
