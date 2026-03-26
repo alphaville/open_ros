@@ -1,0 +1,5 @@
+/**:
+  ros__parameters:
+    result_topic: "result"
+    params_topic: "parameters"
+    rate: 35.0
